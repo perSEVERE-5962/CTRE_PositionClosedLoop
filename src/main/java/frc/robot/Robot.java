@@ -57,6 +57,11 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.*;
 
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+import edu.wpi.first.wpilibj.command.Command;
+import edu.wpi.first.wpilibj.buttons.Trigger;
+
 public class Robot extends TimedRobot {
 	/** Hardware */
 
@@ -72,6 +77,14 @@ public class Robot extends TimedRobot {
 
 	/** Save the target position to servo to */
 	double targetPositionRotations;
+
+	public JoystickButton onFloor;
+	public JoystickButton inRobot;
+	public JoystickButton placeHatch;
+	public JoystickButton shootBall;
+	public Joystick gamepad1;
+
+
 
 	public void robotInit() {
 		/* Config the sensor used for Primary PID and sensor direction */
@@ -120,13 +133,31 @@ public class Robot extends TimedRobot {
 		
 		/* Set the quadrature (relative) sensor to match absolute */
 		_talon.setSelectedSensorPosition(absolutePosition, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
+
+		gamepad1 = new Joystick(0);
+
+		onFloor = new JoystickButton(gamepad1, 1);
+		onFloor.whenPressed(new onFloor());
+		shootBall = new JoystickButton(gamepad1 , 2);
+		shootBall.whenPressed(new shootBall());
+		inRobot = new JoystickButton(gamepad1, 3);
+		inRobot.whenPressed(new inRobot());
+		placeHatch = new JoystickButton(gamepad1 , 4);
+		placeHatch.whenPressed(new placeHatch());
+
+
+
     }
     
 	void commonLoop() {
 		/* Gamepad processing */
 		double leftYstick = _joy.getY();
-		boolean button1 = _joy.getRawButton(1);	// X-Button
-		boolean button2 = _joy.getRawButton(2);	// A-Button
+		boolean button1 = _joy.getRawButton(1);	// A-Button
+		boolean button2 = _joy.getRawButton(2);	// B-Button
+		boolean button3 = _joy.getRawButton(3);	// B-Button
+		boolean button4 = _joy.getRawButton(4);	// B-Button
+		boolean button5 = _joy.getRawButton(5);	// B-Button
+		boolean button6 = _joy.getRawButton(6);	// B-Button
 
 		/* Get Talon/Victor's current output percentage */
 		double motorOutput = _talon.getMotorOutputPercent();
@@ -137,49 +168,70 @@ public class Robot extends TimedRobot {
 			leftYstick = 0;
 		}
 
-		/* Prepare line to print */
-		_sb.append("\tout:");
-		/* Cast to int to remove decimal places */
-		_sb.append((int) (motorOutput * 100));
-		_sb.append("%");	// Percent
+		// /* Prepare line to print */
+		// _sb.append("\tout:");
+		// /* Cast to int to remove decimal places */
+		// _sb.append((int) (motorOutput * 100));
+		// _sb.append("%");	// Percent
 
-		_sb.append("\tpos:");
-		_sb.append(_talon.getSelectedSensorPosition(0));
-		_sb.append("u"); 	// Native units
+		// _sb.append("\tpos:");
+		// _sb.append(_talon.getSelectedSensorPosition(0));
+		// _sb.append("u"); 	// Native units
 
 		/**
 		 * When button 1 is pressed, perform Position Closed Loop to selected position,
 		 * indicated by Joystick position x10, [-10, 10] rotations
 		 */
-		if (!_lastButton1 && button1) {
-			/* Position Closed Loop */
-
-			/* 10 Rotations * 4096 u/rev in either direction */
-			targetPositionRotations = leftYstick * 2.0 * 4096;
+		if(button1){
+			targetPositionRotations = leftYstick * 1.0 * 682.6;//place hatch
 			_talon.set(ControlMode.Position, targetPositionRotations);
 		}
+		// if (!_lastButton1 && button1) {
+		// 	/* Position Closed Loop */
 
-		/* When button 2 is held, just straight drive */
+		// 	/* 10 Rotations * 4096 u/rev in either direction */
+		// 	targetPositionRotations = leftYstick * 1.0 * 682.2;
+		// 	_talon.set(ControlMode.Position, targetPositionRotations);
+		// }
+
+		// /* When button 2 is held, just straight drive */
 		if (button2) {
 			/* Percent Output */
+			targetPositionRotations = leftYstick * 1.0 * 853.06;//shoot ball
+			_talon.set(ControlMode.Position, targetPositionRotations);
+		}
+		if (button3) {
+			/* Percent Output */
+			targetPositionRotations = leftYstick * 1.0 * 1479.1;//shoot ball
+			_talon.set(ControlMode.Position, targetPositionRotations);
+		}
+		if(button4){
+			_talon.set(ControlMode.Position, 0);
 
-			_talon.set(ControlMode.PercentOutput, leftYstick);
+		}
+		if(button5){
+			targetPositionRotations = leftYstick * 1.0 * 2048;//shoot ball
+			_talon.set(ControlMode.Position, targetPositionRotations);			
+		}
+		if(button6){
+			targetPositionRotations = leftYstick * 1.0 * 4096;//shoot ball
+			_talon.set(ControlMode.Position, targetPositionRotations);			
 		}
 
-		/* If Talon is in position closed-loop, print some more info */
-		if (_talon.getControlMode() == ControlMode.Position) {
-			/* ppend more signals to print when in speed mode. */
-			_sb.append("\terr:");
-			_sb.append(_talon.getClosedLoopError(0));
-			_sb.append("u");	// Native Units
+		// /* If Talon is in position closed-loop, print some more info */
+		// if (_talon.getControlMode() == ControlMode.Position) {
+		// 	/* ppend more signals to print when in speed mode. */
+		// 	_sb.append("\terr:");
+		// 	_sb.append(_talon.getClosedLoopError(0));
+		// 	_sb.append("u");	// Native Units
 
-			SmartDashboard.putNumber("Closed Loop Error", _talon.getClosedLoopError(0));
-			SmartDashboard.putNumber("target position", targetPositionRotations);
+		// 	SmartDashboard.putNumber("Closed Loop Error", _talon.getClosedLoopError(0));
+		// 	SmartDashboard.putNumber("target position", targetPositionRotations);
 
-			_sb.append("\ttrg:");
-			_sb.append(targetPositionRotations);
-			_sb.append("u");	/// Native Units
-		}
+		// 	_sb.append("\ttrg:");
+		// 	_sb.append(targetPositionRotations);
+		// 	_sb.append("u");	/// Native Units
+		// }
 
 		/**
 		 * Print every ten loops, printing too much too fast is generally bad
@@ -187,11 +239,11 @@ public class Robot extends TimedRobot {
 		 */
 		if (++_loops >= 10) {
 			_loops = 0;
-			System.out.println(_sb.toString());
+			//System.out.println(_sb.toString());
 		}
 
-		/* Reset built string for next loop */
-		_sb.setLength(0);
+		// /* Reset built string for next loop */
+		// _sb.setLength(0);
 		
 		/* Save button state for on press detect */
 		_lastButton1 = button1;

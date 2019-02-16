@@ -1,0 +1,9 @@
+[
+  {
+    "artifact": "frcJava (in project CTRE_PositionClosedLoop)",
+    "target": "roborio",
+    "debugfile": "frcJava_roborio.debugconfig",
+    "project": "CTRE_PositionClosedLoop",
+    "language": "java"
+  }
+]
